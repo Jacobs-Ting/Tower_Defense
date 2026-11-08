@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>鋼鐵防線：1944｜Steel Defense: 1944</title>
+  <meta name="description" content="二戰諾曼第背景的 HTML5 俯視角塔防遊戲">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="app">
+    <!-- 頂部資訊列 -->
+    <header id="topbar">
+      <div class="brand">
+        <span class="brand-zh">鋼鐵防線：1944</span>
+        <span class="brand-en">STEEL DEFENSE: 1944</span>
+      </div>
+      <div class="stats">
+        <div class="stat"><label>波次</label><b id="sWave">1 / 10</b></div>
+        <div class="stat supply"><label>補給點數</label><b id="sSupply">500</b></div>
+        <div class="stat hq"><label>指揮部耐久</label><b id="sHq">20</b></div>
+        <div class="stat"><label>擊毀敵軍</label><b id="sKills">0</b></div>
+      </div>
+      <div class="controls">
+        <button id="btnPause" class="ctl" title="暫停 (空白鍵)">⏸ 暫停</button>
+        <button id="btnSpeed" class="ctl" title="速度切換 (F)">1×</button>
+        <button id="btnSound" class="ctl" title="音效開關">🔊</button>
+        <input id="volume" type="range" min="0" max="1" step="0.05" value="0.6" title="音量">
+        <button id="btnMusic" class="ctl" title="背景音樂開關">♪ 音樂</button>
+        <button id="btnHelp" class="ctl" title="操作說明">？</button>
+      </div>
+    </header>
+
+    <main id="main">
+      <!-- 左側武器面板 -->
+      <aside id="left" class="panel">
+        <h2>防禦武器</h2>
+        <div id="weaponList"></div>
+        <div class="keys">快捷鍵：1–6 選武器 · Esc 取消<br>空白鍵 暫停 · F 加速 · U 升級 · X 拆除 · N 開波</div>
+      </aside>
+
+      <!-- 中央戰場 -->
+      <section id="center">
+        <div id="canvasWrap">
+          <canvas id="game" width="1280" height="720"></canvas>
+          <div id="banner"></div>
+          <div id="toasts"></div>
+        </div>
+        <div id="wavebar">
+          <div id="wavePreview"></div>
+          <div class="wave-actions">
+            <button id="btnRepairAll" class="btn secondary hidden">🔧 全部修復</button>
+            <button id="btnStartWave" class="btn primary">▶ 開始第 1 波</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- 右側資訊面板 -->
+      <aside id="right" class="panel">
+        <div id="infoPanel"></div>
+      </aside>
+    </main>
+  </div>
+
+  <!-- 主選單 -->
+  <div id="menu" class="overlay">
+    <div class="dialog menu-dialog">
+      <div class="stamp">機密 · 作戰命令</div>
+      <h1>鋼鐵防線：1944</h1>
+      <div class="sub">STEEL DEFENSE: 1944</div>
+      <p class="brief">
+        1944 年夏，諾曼第登陸後。盟軍正在法國鄉村建立防禦據點，德國國防軍企圖以步兵、機械化與裝甲部隊突破防線。<br>
+        指揮官，你受命守住這處關鍵據點。運用有限補給，部署機槍、迫擊砲、反戰車砲與防空砲，<b>擋住十波攻勢，保護後方指揮部。</b>
+      </p>
+      <div class="menu-buttons">
+        <button id="btnNewGame" class="btn primary big">開始作戰</button>
+        <button id="btnHelp2" class="btn secondary">操作說明</button>
+      </div>
+      <p class="disclaimer">本作為架空戰術關卡，參考真實二戰裝備與戰場環境，不宣稱重現特定歷史戰鬥。遊戲數值為平衡用參數，不代表真實武器性能。</p>
+    </div>
+  </div>
+
+  <!-- 操作說明 -->
+  <div id="help" class="overlay hidden">
+    <div class="dialog help-dialog">
+      <h2>作戰手冊</h2>
+      <ol>
+        <li>點選左側武器（或按 1–6），再點地圖上的<span class="g">綠色部署格</span>建造；<span class="r">紅色</span>代表不可部署。右鍵或 Esc 取消。</li>
+        <li>點選已部署的陣地可查看數值、<b>升級</b>（顯示升級前後變化）、<b>拆除</b>（退還 50% 投入）與<b>修復</b>（準備階段）。</li>
+        <li>每波結束後有 20 秒準備時間；按「開始下一波」可提前出擊並獲得額外補給。</li>
+        <li><b>裝甲剋制：</b>機槍專打步兵、對戰車無效；迫擊砲打密集步兵；反戰車砲對付裝甲；Bofors 是唯一能打飛機的武器。</li>
+        <li><b>空襲：</b>畫面出現紅色瞄準標記時，敵機即將轟炸該處（指揮部或陣地）。在附近部署 Bofors 攔截。被炸失能的陣地需修復。</li>
+        <li><b>MG42 機槍班</b>會壓制附近陣地，暫時降低射速。</li>
+        <li>武器解鎖：迫擊砲（第 3 波）、57mm（第 5 波）、Bofors（第 7 波）、105mm（第 8 波）、17 磅砲（第 9 波）。</li>
+      </ol>
+      <button id="btnCloseHelp" class="btn primary">了解</button>
+    </div>
+  </div>
+
+  <!-- 遊戲結束 -->
+  <div id="endScreen" class="overlay hidden">
+    <div class="dialog end-dialog">
+      <h1 id="endTitle">防線守住了！</h1>
+      <div id="endSub" class="sub"></div>
+      <table id="endStats"></table>
+      <button id="btnRestart" class="btn primary big">重新開始</button>
+    </div>
+  </div>
+
+  <!-- 傳統 script 載入：可直接以 file:// 開啟，也可部署至 GitHub Pages -->
+  <script src="js/config.js"></script>
+  <script src="js/map.js"></script>
+  <script src="js/effects.js"></script>
+  <script src="js/enemies.js"></script>
+  <script src="js/towers.js"></script>
+  <script src="js/projectiles.js"></script>
+  <script src="js/waves.js"></script>
+  <script src="js/core.js"></script>
+  <script src="js/audio.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="game.js"></script>
+</body>
+</html>
